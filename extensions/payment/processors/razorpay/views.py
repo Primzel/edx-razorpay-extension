@@ -8,7 +8,7 @@ from django.views.generic import View
 from ecommerce.extensions.basket.utils import basket_add_organization_attribute
 from ecommerce.extensions.checkout.mixins import EdxOrderPlacementMixin
 from ecommerce.extensions.checkout.utils import get_receipt_page_url
-from ecommerce.extensions.payment.processors.razorpay import RazorPay
+from extensions.payment.processors.razorpay import RazorPay
 from oscar.apps.partner import strategy
 from oscar.apps.payment.exceptions import PaymentError
 from oscar.core.loading import get_class, get_model
