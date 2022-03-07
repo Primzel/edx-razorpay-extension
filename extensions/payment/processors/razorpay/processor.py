@@ -55,7 +55,7 @@ class RazorPay(BasePaymentProcessor):
         client = self.razerpay_api
 
         payment = client.payment_link.create({
-            "amount": int(basket.total_incl_tax),
+            "amount": int(basket.total_incl_tax * 100),
             "currency": basket.currency,
             "accept_partial": False,
             "callback_url": get_ecommerce_url(reverse("razorpay:urls:callback")),
@@ -111,7 +111,7 @@ class RazorPay(BasePaymentProcessor):
             raise GatewayError
 
         currency = basket.currency
-        total = basket.total_incl_tax
+        total = basket.total_incl_tax * 100
         transaction_id = razorpay_payment_id
         return HandledProcessorResponse(
             transaction_id=transaction_id,
@@ -121,5 +121,27 @@ class RazorPay(BasePaymentProcessor):
             card_type=None
         )
 
-    def issue_credit(self, order_number, basket, reference_number, amount, currency):
-        pass
+    def issue_credit(self, order_number, basket, payment_id, amount, currency):
+        amount = int(amount) * 100
+
+        try:
+            client = self.razerpay_api
+            refund = client.payment.refund(
+                payment_id,
+                {'amount': amount}
+            )
+        except:
+            msg = 'An error occurred while attempting to issue a credit (via RazorPay) for order [{}].'.format(
+                order_number
+            )
+            logger.exception(msg)
+            raise GatewayError(msg)
+
+        if refund['status'] == 'processed':
+            transaction_id = refund['id']
+            self.record_processor_response(refund, transaction_id=transaction_id, basket=basket)
+            return transaction_id
+
+        msg = "Failed to refund RazorPay payment [{sale_id}]."
+        logger.info(refund)
+        raise GatewayError(msg)
