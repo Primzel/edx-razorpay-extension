@@ -118,7 +118,7 @@ class RazorPayPaymentExecutionView(EdxOrderPlacementMixin, View):
 
 class RazorPayRedirectView(View):
     def get(self, request):
-        return redirect(request.GET.get('redirect_url'))
+        return redirect(f'{request.GET.get("redirect_url")}&ecommerce_basket_id={request.GET.get("ecommerce_basket_id")}')
 
     def post(self, request):
-        return redirect(request.GET.get('redirect_url'))
+        return redirect(f'{request.GET.get("redirect_url")}&ecommerce_basket_id={request.GET.get("ecommerce_basket_id")}')

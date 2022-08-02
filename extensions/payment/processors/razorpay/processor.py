@@ -63,8 +63,13 @@ class RazorPay(BasePaymentProcessor):
         })
         entry = self.record_processor_response(payment, transaction_id=payment['id'], basket=basket)
         logger.info("Successfully created PayPal payment [%s] for basket [%d].", payment['id'], basket.id)
+        redirect_url = f'{reverse("razorpay:urls:redirect")}?redirect_url={payment["short_url"]}'
+        allow_user_info_tracking = self.configuration.get('allow_user_info_tracking', False)
+        if allow_user_info_tracking:
+            redirect_url = f'{reverse("razorpay:urls:redirect")}?redirect_url={self.configuration["lms_form_url"]}?redirect_url={payment["short_url"]}&ecommerce_basket_id={basket.id}'
+
         parameters = {
-            'payment_page_url': f'{reverse("razorpay:urls:redirect")}?redirect_url={payment["short_url"]}',
+            'payment_page_url': redirect_url,
             'csrfmiddlewaretoken': get_token(request),
         }
 
