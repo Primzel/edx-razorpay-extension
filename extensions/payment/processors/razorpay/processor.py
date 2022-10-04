@@ -53,16 +53,26 @@ class RazorPay(BasePaymentProcessor):
 
     def get_transaction_parameters(self, basket, request=None, use_client_side_checkout=False, **kwargs):
         client = self.razerpay_api
+        user = request.user
 
         payment = client.payment_link.create({
             "amount": int(basket.total_incl_tax * 100),
             "currency": basket.currency,
             "accept_partial": False,
             "callback_url": get_ecommerce_url(reverse("razorpay:urls:callback")),
-            "callback_method": "get"
+            "callback_method": "get",
+            "notes": {
+                "info": "Payment from MOOC platform"
+            },
+            "description": f"Payment for the order - [{basket.order_number}]]",
+            "customer": {
+                "name": user.profile.name,
+                "contact": user.extended_profile.phone_number,
+                "email": user.email,
+            }
         })
         entry = self.record_processor_response(payment, transaction_id=payment['id'], basket=basket)
-        logger.info("Successfully created PayPal payment [%s] for basket [%d].", payment['id'], basket.id)
+        logger.info("Successfully created Razorpay payment [%s] for basket [%d].", payment['id'], basket.id)
         redirect_url = f'{reverse("razorpay:urls:redirect")}?redirect_url={payment["short_url"]}'
         allow_user_info_tracking = self.configuration.get('allow_user_info_tracking', False)
         if allow_user_info_tracking:
