@@ -36,3 +36,12 @@ PAYMENT_PROCESSOR_CONFIG:
       client_id: paypal-account-client-id
       client_secret: paypal-account-secret
 ```
+
+# Note for Identity
+
+The Identity CRM records payments from this Open edX Razorpay extension
+by listening to the webhook for `payment_link.paid` event in the relevant controller.
+It checks whether the payment is from this platform or not by checking
+the `notes` property in the payment link entity.
+
+This is configured in `get_transaction_parameters` in [`processor.py`](/extensions/payment/processors/razorpay/processor.py#L64).
